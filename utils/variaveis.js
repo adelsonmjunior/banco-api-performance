@@ -1,4 +1,4 @@
-const __ENV = JSON.parse(open("../config/config.local.js"))
+const configLocal = JSON.parse(open("../config/config.local.json"))
 export function pegarBaseURL() {
-    return __ENV.BASE_URL || config.local.BASE_URL
+  return __ENV.BASE_URL || configLocal.baseUrl
 }
