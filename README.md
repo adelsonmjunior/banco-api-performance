@@ -72,81 +72,49 @@ Ignora o arquivo `html-report.html`, gerado na exportação do relatório do das
 - API bancária em execução e acessível no endereço que será informado em `BASE_URL`.
 - Dados de teste válidos para autenticação e contas disponíveis para o cenário de transferência.
 
-Consulte a documentação oficial para instalar o k6 no seu sistema operacional:
-
-https://grafana.com/docs/k6/latest/set-up/install-k6/
-
-### Clonar o repositório
+### 1. Clone o Repositório
 
 ```bash
-git clone https://github.com/adelsonmjunior/banco-api-performance.git
+git clone https://github.com/juliodelimas/banco-api-performance.git
 cd banco-api-performance
 ```
 
-### Configurar a URL da API
+### 2. Configure as Variáveis de Ambiente
 
-Os scripts obtêm a URL base por meio da função `pegarBaseURL()`, em `utils/variaveis.js`.
+Altere o arquivo `config.local.json` e defina a URL base da API a ser testada:
 
-A precedência é:
+```json
+{
+    "baseUrl": "http://localhost:3000"
+}
+```
 
-1. Valor passado pela variável de ambiente `BASE_URL`.
-2. Valor padrão `http://localhost:3000`, definido em `config/config.local.json`.
+> 💡 Essas variáveis serão usada dinamicamente nos testes para montar as requisições.
 
-Assim, para executar os testes em outro ambiente, informe `BASE_URL` no comando do k6 com `-e`:
+### 3. Execute um Teste
 
 ```bash
-k6 run -e BASE_URL=https://sua-api.com tests/login.test.js
+k6 run tests/login.test.js
 ```
 
-Substitua `https://sua-api.com` pela URL base da API que será testada. Não acrescente `/login` ou `/transferencias` ao valor: os próprios scripts acrescentam esses caminhos.
-
-### Executar o teste de login
+Certifique-se de passar a variável de ambiente `BASE_URL`, caso não esteja usando um `config.local.json` ou uma abordagem de carregamento automático:
 
 ```bash
-k6 run -e BASE_URL=https://sua-api.com tests/login.test.js
+k6 run tests/autenticacao/login.test.js -e BASE_URL=http://localhost:3000
 ```
 
-Esse cenário executa o teste de login com os estágios de usuários virtuais e thresholds definidos no arquivo.
+### 4. Acompanhamento em Tempo Real + Exportação de Relatório
 
-### Executar o teste de transferências
+Você pode ativar o modo dashboard do K6 e exportar o relatório ao final do teste:
 
 ```bash
-k6 run -e BASE_URL=https://sua-api.com tests/transferencias.test.js
+K6_WEB_DASHBOARD=true \
+K6_WEB_DASHBOARD_EXPORT=html-report.html \
+k6 run tests/autenticacao/login.test.js \
+-e BASE_URL=http://localhost:3000
 ```
 
-Esse cenário realiza uma iteração, autentica para obter o token e executa uma transferência conforme os dados definidos no script.
-
-### Acompanhar a execução em tempo real e exportar o relatório HTML
-
-O k6 oferece um dashboard web para acompanhar as métricas durante a execução. As variáveis de ambiente abaixo habilitam o dashboard e definem a exportação do relatório HTML:
-
-- `K6_WEB_DASHBOARD=true`: habilita o dashboard web.
-- `K6_WEB_DASHBOARD_EXPORT=html-report.html`: define o nome do arquivo HTML exportado ao final da execução.
-
-**Linux / macOS**
-
-```bash
-K6_WEB_DASHBOARD=true K6_WEB_DASHBOARD_EXPORT=html-report.html k6 run -e BASE_URL=https://sua-api.com tests/login.test.js
-```
-
-**Windows PowerShell**
-
-```powershell
-$env:K6_WEB_DASHBOARD = "true"
-$env:K6_WEB_DASHBOARD_EXPORT = "html-report.html"
-
-k6 run -e BASE_URL=https://sua-api.com tests/login.test.js
-```
-
-Durante a execução, acesse o dashboard pelo navegador:
-
-http://localhost:5665
-
-Ao término do teste, o k6 exporta o relatório para `html-report.html` no diretório de execução. Abra esse arquivo em um navegador para consultar os resultados.
-
-Para executar o cenário de transferências com dashboard e exportação, substitua `tests/login.test.js` por `tests/transferencias.test.js` no comando.
-
-> **Observação:** o dashboard apresenta métricas durante a execução; o arquivo HTML é exportado ao final do teste. O arquivo `html-report.html` está listado no `.gitignore` e, portanto, não deve ser versionado.
+Após a execução, o relatório estará salvo como `html-report.html`.
 
 ## Observações
 
